@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test YouTube OAuth</title>
+</head>
+<body>
+    <h1>Test YouTube OAuth Connection</h1>
+    
+    <div>
+        <label>JWT Token (from localStorage):</label><br>
+        <input type="text" id="token" style="width: 500px" placeholder="Paste your JWT token here">
+        <button onclick="getTokenFromStorage()">Get from localStorage</button>
+    </div>
+    
+    <br>
+    
+    <button onclick="testConnection()">Test YouTube Connection</button>
+    
+    <br><br>
+    
+    <div id="result"></div>
+    
+    <script>
+        function getTokenFromStorage() {
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                document.getElementById('token').value = token;
+                document.getElementById('result').innerHTML = '<p style="color: green">Token found in localStorage!</p>';
+            } else {
+                document.getElementById('result').innerHTML = '<p style="color: red">No token found in localStorage. Please login first.</p>';
+            }
+        }
+        
+        async function testConnection() {
+            const token = document.getElementById('token').value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!token) {
+                resultDiv.innerHTML = '<p style="color: red">Please enter a JWT token</p>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<p>Testing connection...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/auth/platforms/youtube/authorize', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <p style="color: green">✅ Success!</p>
+                        <p>Authorization URL received:</p>
+                        <textarea style="width: 100%; height: 100px">${data.authorization_url}</textarea>
+                        <br><br>
+                        <a href="${data.authorization_url}" target="_blank">Click here to authorize</a>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p style="color: red">❌ Error: ${response.status}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `
+                    <p style="color: red">❌ Network Error:</p>
+                    <pre>${error.message}</pre>
+                    <p>Check the browser console for more details.</p>
+                `;
+            }
+        }
+        
+        // Auto-load token on page load
+        window.onload = function() {
+            getTokenFromStorage();
+        };
+    </script>
+</body>
+</html>

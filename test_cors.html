@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CORS Test</title>
+</head>
+<body>
+    <h1>CORS Test</h1>
+    <button onclick="testHealth()">Test Health Endpoint</button>
+    <button onclick="testAuth()">Test Auth Endpoint (with token)</button>
+    <pre id="output"></pre>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        const TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlODhhY2RhMy00Mjg4LTRiMWYtODA4ZC00Y2VjMjZmY2Q5MDEiLCJleHAiOjE3NjI5NzA0MjIsImlhdCI6MTc2Mjk2OTUyMiwidHlwZSI6ImFjY2VzcyJ9.PoDNpmLxCIIWHXiMvbnoQkY1fHFCH6wDlXms-lC_DE0';
+
+        function log(message) {
+            document.getElementById('output').textContent += message + '\n';
+        }
+
+        async function testHealth() {
+            log('Testing health endpoint...');
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                log('Success: ' + JSON.stringify(data, null, 2));
+            } catch (error) {
+                log('Error: ' + error.message);
+            }
+        }
+
+        async function testAuth() {
+            log('Testing YouTube authorize endpoint...');
+            try {
+                const response = await fetch(`${API_URL}/api/auth/platforms/youtube/authorize`, {
+                    headers: {
+                        'Authorization': `Bearer ${TOKEN}`
+                    }
+                });
+                const data = await response.json();
+                log('Success: ' + JSON.stringify(data, null, 2));
+            } catch (error) {
+                log('Error: ' + error.message);
+                console.error('Full error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
